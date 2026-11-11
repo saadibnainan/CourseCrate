@@ -1,0 +1,15 @@
+.opts { max-width: 680px; }
+.opts h1 { font-size: 28px; letter-spacing: -.02em; margin-bottom: 6px; }
+.opts > p { margin: 0 0 22px; }
+.opts .panel { margin-bottom: 16px; }
+.opts .panel h2 { margin-top: 0; }
+.opts .panel > p { margin: 0 0 8px; }
+.check input[type=radio] { accent-color: var(--accent); margin-top: 4px; }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0 4px; }
+.field input, .field select {
+  font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line-strong);
+  border-radius: 7px; padding: 6px 10px; min-width: 0;
+}
+.field input { flex: 1; max-width: 300px; }
+#forget-all { margin-top: 14px; }
+.saved { color: var(--ok); }

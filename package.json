@@ -1,0 +1,19 @@
+{
+  "name": "coursecrate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firefox extension: download a whole Moodle course, sorted into one folder per section.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/",
+    "lint": "web-ext lint --source-dir extension",
+    "build": "web-ext build --source-dir extension --artifacts-dir dist --overwrite-dest",
+    "start": "web-ext run --source-dir extension",
+    "sign": "web-ext sign --source-dir extension --artifacts-dir dist --channel listed"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.15",
+    "web-ext": "^10.8.0"
+  }
+}

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CourseCrate</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="crate.css">
+<script type="module" src="crate.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="crate.html" title="CourseCrate start page">
+    <img src="icons/icon.svg" alt="" width="28" height="28">
+    <span>CourseCrate</span>
+  </a>
+  <span class="site-chip" id="site-chip" hidden></span>
+  <span class="spacer"></span>
+  <a class="ghost-btn" href="options.html" target="_blank">Settings</a>
+</header>
+
+<main id="app">
+
+  <!-- Start: not on a Moodle page -->
+  <section class="view" id="view-start" hidden>
+    <div class="start">
+      <p class="eyebrow" id="welcome-eyebrow" hidden>Installed, thanks!</p>
+      <h1>Open a Moodle course, then click CourseCrate.</h1>
+      <p class="lede">CourseCrate saves a whole course to your computer: every file, folder, assignment brief and forum attachment, plus a page of links, sorted into one folder per section.</p>
+      <ol class="steps">
+        <li><span class="n">1</span><div><strong>Log in to Moodle</strong> in this browser and open any page of the course.</div></li>
+        <li><span class="n">2</span><div><strong>Click the CourseCrate button</strong> in the toolbar. If it's not there, open the puzzle-piece menu and pin it.</div></li>
+        <li><span class="n">3</span><div><strong>Pick what you want</strong> and press Download. Run it again later and only new files come down.</div></li>
+      </ol>
+      <div class="recent" id="recent" hidden>
+        <h2>Recent courses</h2>
+        <ul id="recent-list" class="course-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Needs host permission for this Moodle site -->
+  <section class="view" id="view-permission" hidden>
+    <div class="card narrow center">
+      <img src="icons/icon.svg" alt="" width="56" height="56">
+      <h1>Allow CourseCrate on <span id="perm-host"></span>?</h1>
+      <p>To list and download a course, CourseCrate reads Moodle pages with your existing login, just like your browser does when you click around. It only asks for this one site, and nothing leaves your computer.</p>
+      <button class="primary" id="perm-btn">Allow on this site</button>
+      <p class="fine">You can take this back any time in Firefox's add-on settings.</p>
+    </div>
+  </section>
+
+  <!-- Pick a course on this site -->
+  <section class="view" id="view-courses" hidden>
+    <div class="page-head">
+      <p class="eyebrow" id="courses-site"></p>
+      <h1>Which course?</h1>
+    </div>
+    <ul class="course-grid" id="course-grid"></ul>
+  </section>
+
+  <!-- Scanning -->
+  <section class="view" id="view-scan" hidden>
+    <div class="card narrow center">
+      <div class="crate-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <h1 id="scan-title">Reading the course…</h1>
+      <div class="bar"><div class="bar-fill" id="scan-bar"></div></div>
+      <p class="muted ellipsis" id="scan-label">&nbsp;</p>
+      <button class="ghost-btn" id="scan-cancel">Cancel</button>
+    </div>
+  </section>
+
+  <!-- Error -->
+  <section class="view" id="view-error" hidden>
+    <div class="card narrow center">
+      <h1 id="error-title">Something went wrong</h1>
+      <p id="error-text"></p>
+      <div class="row-btns">
+        <a class="ghost-btn" id="error-login" target="_blank" hidden>Open Moodle login</a>
+        <button class="primary" id="error-retry">Try again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Course -->
+  <section class="view" id="view-course" hidden>
+    <div class="page-head">
+      <p class="eyebrow"><a id="course-link" target="_blank" rel="noopener">Open in Moodle ↗</a></p>
+      <h1 id="course-name"></h1>
+      <p class="muted" id="course-stats"></p>
+    </div>
+
+    <div class="layout">
+      <div class="tree-col">
+        <div class="tree-toolbar">
+          <button class="link-btn" data-select="all">Select all</button>
+          <button class="link-btn" data-select="none">None</button>
+          <button class="link-btn" data-select="new" id="select-new">Only new</button>
+          <span class="spacer"></span>
+          <label class="toggle-inline"><input type="checkbox" id="show-skipped"> Show skipped activities</label>
+          <button class="link-btn" id="rescan">Rescan</button>
+        </div>
+        <div id="tree" class="tree" role="tree"></div>
+      </div>
+
+      <aside class="side">
+        <div class="panel go">
+          <button class="primary big" id="go">Download</button>
+          <p class="muted small center" id="go-note"></p>
+
+          <div id="run" hidden>
+            <div class="bar"><div class="bar-fill" id="run-bar"></div></div>
+            <div class="run-stats"><span id="run-count"></span><span id="run-bytes"></span></div>
+            <p class="muted ellipsis small" id="run-label">&nbsp;</p>
+            <button class="ghost-btn wide" id="run-cancel">Stop</button>
+          </div>
+
+          <div id="result" hidden>
+            <p id="result-text"></p>
+            <button class="ghost-btn wide" id="show-folder">Show in folder</button>
+            <details id="failures" hidden>
+              <summary id="failures-summary"></summary>
+              <ul id="failures-list"></ul>
+            </details>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Save as</h2>
+          <div class="segmented" role="radiogroup" aria-label="Save as">
+            <label><input type="radio" name="mode" value="folders"><span>Folders</span></label>
+            <label><input type="radio" name="mode" value="zip"><span>ZIP file</span></label>
+          </div>
+          <p class="dest" id="dest"></p>
+
+          <h2>Include</h2>
+          <label class="check"><input type="checkbox" data-setting="includeLinks"><span>Links index<small>A Links.html in each section</small></span></label>
+          <label class="check"><input type="checkbox" data-setting="includeAssign"><span>Assignment files<small>Briefs, your submissions, feedback</small></span></label>
+          <label class="check"><input type="checkbox" data-setting="includeForum"><span>Forum attachments<small>Files posted in discussions</small></span></label>
+
+          <h2>Sync</h2>
+          <label class="check"><input type="checkbox" data-setting="sync"><span>Skip files I already have<small id="sync-note">Remembers what CourseCrate saved</small></span></label>
+          <button class="link-btn small" id="forget">Forget download history for this course</button>
+
+          <h2>Names</h2>
+          <label class="check"><input type="checkbox" data-setting="numberPrefixes"><span>Number in course order<small>“03 - Week 3 / 02 - Slides.pdf”</small></span></label>
+          <div class="radio-row">
+            <label><input type="radio" name="nameBy" value="title"> Activity title</label>
+            <label><input type="radio" name="nameBy" value="filename"> Original file name</label>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </section>
+</main>
+</body>
+</html>

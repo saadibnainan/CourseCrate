@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CourseCrate settings</title>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="crate.css">
+<link rel="stylesheet" href="options.css">
+<script type="module" src="options.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="crate.html"><img src="icons/icon.svg" alt="" width="28" height="28"><span>CourseCrate</span></a>
+  <span class="spacer"></span>
+  <span class="saved muted small" id="saved" hidden>Saved</span>
+</header>
+<main class="opts">
+  <h1>Settings</h1>
+  <p class="muted">These are your defaults. You can also change most of them on the course page.</p>
+
+  <section class="panel">
+    <h2>Save as</h2>
+    <label class="check"><input type="radio" name="mode" value="folders"><span>Folders<small>Each file goes straight into Downloads, one folder per section. Best for big courses.</small></span></label>
+    <label class="check"><input type="radio" name="mode" value="zip"><span>One ZIP file<small>Everything packed into a single .zip. Built in memory, up to 4 GB.</small></span></label>
+    <label class="field">
+      <span>Folder inside Downloads</span>
+      <input type="text" id="rootFolder" placeholder="(none: save straight into Downloads)" maxlength="60">
+    </label>
+  </section>
+
+  <section class="panel">
+    <h2>Include</h2>
+    <p class="muted small">Files, folders, pages, books and files in section text are always included.</p>
+    <label class="check"><input type="checkbox" data-setting="includeLinks"><span>Links index<small>A Links.html in each section with every web link: URL activities and links in section text.</small></span></label>
+    <label class="check"><input type="checkbox" data-setting="urlShortcuts"><span>Also save each link as a .url shortcut<small>Only in ZIP mode: Firefox won't save .url files directly. Double-click opens them on Windows and macOS.</small></span></label>
+    <label class="check"><input type="checkbox" data-setting="includeAssign"><span>Assignment files<small>Assignment briefs and attachments, your own submitted files, and feedback files.</small></span></label>
+    <label class="check"><input type="checkbox" data-setting="includeForum"><span>Forum attachments<small>Files attached to forum posts, in a folder per discussion. Big forums take longer to scan.</small></span></label>
+  </section>
+
+  <section class="panel">
+    <h2>Names</h2>
+    <label class="check"><input type="checkbox" data-setting="numberPrefixes"><span>Number folders and files in course order<small>“03 - Week 3 / 02 - Lecture slides.pdf” keeps Moodle's order in your file manager.</small></span></label>
+    <label class="check"><input type="radio" name="nameBy" value="title"><span>Name files after the activity title<small>“Lecture 3 slides.pdf” instead of “L3_final_v2.pdf”.</small></span></label>
+    <label class="check"><input type="radio" name="nameBy" value="filename"><span>Keep the original file names</span></label>
+  </section>
+
+  <section class="panel">
+    <h2>Sync &amp; downloads</h2>
+    <label class="check"><input type="checkbox" data-setting="sync"><span>Skip files I already downloaded<small>Run it again later in the semester to get only new or changed files.</small></span></label>
+    <label class="check"><input type="checkbox" data-setting="cleanDownloadList"><span>Keep Firefox's download list tidy<small>Removes each finished course file from the Downloads panel (the file stays on disk).</small></span></label>
+    <label class="field">
+      <span>Files at once</span>
+      <select id="concurrency"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="6">6</option></select>
+    </label>
+    <button class="ghost-btn" id="forget-all">Forget download history for all courses</button>
+  </section>
+
+  <p class="muted small">CourseCrate collects no data. It talks only to the Moodle sites you allow, using your own login, and everything stays on your computer.</p>
+</main>
+</body>
+</html>
