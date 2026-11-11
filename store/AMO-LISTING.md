@@ -77,7 +77,7 @@ Pick from AMO's list if available: `download manager`, `productivity`.
 ## Support
 
 - Support website: https://github.com/saadibnainan/CourseCrate/issues
-- Support email: (optional, e.g. a vintcode.com address)
+- Support email: (optional, e.g. a lecturex.app address)
 - Homepage: https://github.com/saadibnainan/CourseCrate
 
 ## License
