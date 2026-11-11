@@ -102,8 +102,8 @@ Store listing copy, reviewer notes and screenshots are in [`store/`](store/).
 
 ## Tested against
 
-- Moodle 5.x (Mount Orange demo, `school.moodledemo.net`), Firefox 159, Folders and ZIP modes, from a real toolbar click.
-- Moodle 3.x course layout via unit tests (HTML fallback).
+- Moodle 5.x (Mount Orange demo, `school.moodledemo.net`), Firefox 159, Folders and ZIP modes, from a real toolbar click, including subsections and forum attachments.
+- Moodle 3.x course layout and Collapsed Topics + subsections markup via unit tests (HTML fallback).
 
 ---
 

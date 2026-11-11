@@ -1,6 +1,6 @@
 {
   "name": "coursecrate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Firefox extension: download a whole Moodle course, sorted into one folder per section.",
   "license": "MIT",

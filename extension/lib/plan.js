@@ -7,7 +7,7 @@ import { sanitizeSegment, splitExt, pad } from './util.js';
 const NOTHING = {
   quiz: 'Quiz', choice: 'Choice', feedback: 'Feedback survey', h5pactivity: 'H5P', lesson: 'Lesson',
   wiki: 'Wiki', glossary: 'Glossary', workshop: 'Workshop', scorm: 'SCORM package', lti: 'External tool',
-  data: 'Database', chat: 'Chat', survey: 'Survey', bigbluebuttonbn: 'Video meeting', qbank: 'Question bank',
+  data: 'Database', chat: 'Chat', hvp: 'H5P', choicegroup: 'Group choice', attendance: 'Attendance', zoom: 'Zoom', survey: 'Survey', bigbluebuttonbn: 'Video meeting', qbank: 'Question bank',
   subsection: 'Subsection',
 };
 

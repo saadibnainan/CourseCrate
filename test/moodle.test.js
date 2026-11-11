@@ -49,3 +49,68 @@ test('forum discussion: attachments and linked files, not inline images or avata
   const files = collectFiles(mainRegion(doc), 'https://m.x/mod/forum/discuss.php?d=12', { accept: (f) => f.component === 'mod_forum' });
   assert.deepEqual(files.map((f) => f.filename), ['extra reading.pdf', 'notes.pdf']);
 });
+
+import { stateStructure } from '../extension/lib/moodle.js';
+
+// Shape of core_courseformat_get_state on Moodle 5.x (school.moodledemo.net, course 75):
+// a delegated section's itemid is the subsection *instance* id, not the activity id.
+function fakeState({ withDelegateId = true } = {}) {
+  const cm = (id, module, name, sectionid, extra = {}) => ({ id: String(id), module, modname: module, name, sectionid: String(sectionid), uservisible: true, url: `https://m.x/mod/${module}/view.php?id=${id}`, ...extra });
+  return JSON.stringify({
+    course: { id: '75', sectionlist: ['597', '600', '598', '599'] },
+    section: [
+      { id: '597', number: 0, title: 'Topic 1', cmlist: ['10', '1214', '1300'], component: null, itemid: null },
+      { id: '600', number: 1, title: 'Topic 2', cmlist: ['20'], component: null, itemid: null },
+      { id: '598', number: 8, title: 'Lecture', cmlist: ['1215', '1216'], component: 'mod_subsection', itemid: 1, parentsectionid: '597' },
+      { id: '599', number: 9, title: 'Exercise', cmlist: ['1217'], component: 'mod_subsection', itemid: 2, parentsectionid: '597' },
+    ],
+    cm: [
+      cm(10, 'resource', 'Intro slides', 597),
+      cm(1214, 'subsection', 'Lecture', 597, { hasdelegatedsection: true, ...(withDelegateId ? { delegatesectionid: '598' } : {}) }),
+      cm(1300, 'subsection', 'Exercise', 597, { hasdelegatedsection: true, ...(withDelegateId ? { delegatesectionid: '599' } : {}) }),
+      cm(1215, 'resource', 'Lecture 1', 598),
+      cm(1216, 'folder', 'Lecture extras', 598),
+      cm(1217, 'resource', 'Exercise 1', 599),
+      cm(20, 'resource', 'Week 2', 600),
+    ],
+  });
+}
+
+const flatten = (sections) => sections.map((s) => [s.title, s.entries.map((e) => (e.type === 'subsection'
+  ? [e.title, e.entries.map((x) => x.cm.name)] : e.cm.name))]);
+
+const EXPECTED = [
+  ['Topic 1', ['Intro slides', ['Lecture', ['Lecture 1', 'Lecture extras']], ['Exercise', ['Exercise 1']]]],
+  ['Topic 2', ['Week 2']],
+];
+
+test('subsections: activity is paired with its section via delegatesectionid, not itemid', async () => {
+  const client = { ajax: async () => fakeState() };
+  assert.deepEqual(flatten(await stateStructure(client, 75, null)), EXPECTED);
+});
+
+test('subsections without delegatesectionid: paired via the course page, else by parent + name', async () => {
+  const client = { ajax: async () => fakeState({ withDelegateId: false }) };
+  assert.deepEqual(flatten(await stateStructure(client, 75, null)), EXPECTED);
+  const page = new DOMParser().parseFromString(`<!doctype html><html><body><ul>
+    <li data-for="section" data-id="597"><ul>
+      <li data-for="cmitem" data-id="1214"><li data-for="section" data-id="598"></li></li>
+      <li data-for="cmitem" data-id="1300"><li data-for="section" data-id="599"></li></li>
+    </ul></li></ul></body></html>`, 'text/html');
+  assert.deepEqual(flatten(await stateStructure(client, 75, page)), EXPECTED);
+});
+
+test('HTML fallback walks into subsections (Moodle 4.5+ markup)', () => {
+  const html = `<!doctype html><html><body><div id="region-main"><ul>
+    <li id="section-1" class="section" data-for="section" data-id="11" data-number="1" data-sectionname="Topic 1"><ul>
+      <li class="activity subsection modtype_subsection" data-for="cmitem" data-id="5" id="module-5"><div>
+        <li id="section-13" class="section delegated-section" data-for="section" data-id="31" data-number="13" data-sectionname="Lecture"><ul>
+          <li class="activity resource modtype_resource" data-for="cmitem" data-id="6" id="module-6"><a href="https://m.x/mod/resource/view.php?id=6"><span class="instancename">Slides 1</span></a></li>
+        </ul></li></div></li>
+      <li class="activity resource modtype_resource" data-for="cmitem" data-id="7" id="module-7"><a href="https://m.x/mod/resource/view.php?id=7"><span class="instancename">Reading</span></a></li>
+    </ul></li></ul></div>
+    <div class="courseindex"><div data-for="section" data-id="11"></div><div data-for="section" data-id="31"></div></div>
+  </body></html>`;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  assert.deepEqual(flatten(htmlSections(doc, 'https://m.x/course/view.php?id=9')), [['Topic 1', [['Lecture', ['Slides 1']], 'Reading']]]);
+});

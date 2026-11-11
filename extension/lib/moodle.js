@@ -185,14 +185,48 @@ function normalizeCm(c) {
   };
 }
 
+// Course content only: the course-index drawer reuses data-for="section" on <div>s.
+const SEC_SEL = 'li[data-for="section"], li.section[id^="section-"]';
+const CM_SEL = '[data-for="cmitem"], li.activity[id^="module-"]';
+const cmIdOf = (el) => el.getAttribute('data-id') || el.id.replace('module-', '');
+
+/** Subsection activity id -> id of the section nested inside it on the course page. */
+function nestedSectionIds(doc) {
+  const map = new Map();
+  for (const cmEl of doc?.querySelectorAll(CM_SEL) ?? []) {
+    const sec = cmEl.querySelector(SEC_SEL);
+    if (sec?.getAttribute('data-id') && sec.parentElement?.closest(CM_SEL) === cmEl) {
+      map.set(cmIdOf(cmEl), sec.getAttribute('data-id'));
+    }
+  }
+  return map;
+}
+
 /** Moodle 4.0+: the course format's state has every section and activity, whatever the layout. */
-async function stateStructure(client, courseId) {
+export async function stateStructure(client, courseId, doc) {
   const raw = await client.ajax('core_courseformat_get_state', { courseid: Number(courseId) });
   const st = typeof raw === 'string' ? JSON.parse(raw) : raw;
   const cms = new Map(st.cm.map((c) => [String(c.id), c]));
   const byId = new Map(st.section.map((s) => [String(s.id), s]));
-  const delegated = new Map();
-  for (const s of st.section) if (s.component && s.itemid != null) delegated.set(String(s.itemid), s);
+  const onPage = nestedSectionIds(doc);
+  const claimed = new Set();
+
+  // A subsection (Moodle 4.5+) is an activity whose content is its own,
+  // "delegated" section. Note the section's itemid is the subsection's
+  // instance id, not the activity id, so it can't be used to pair them.
+  const delegatedFor = (cm) => {
+    const id = String(cm.id);
+    for (const sid of [cm.delegatesectionid, onPage.get(id)]) {
+      const s = sid != null ? byId.get(String(sid)) : null;
+      if (s && !claimed.has(String(s.id))) return s;
+    }
+    if (cm.module !== 'subsection' && !cm.hasdelegatedsection) return null;
+    // Older state without delegatesectionid: same parent section, same name.
+    const name = cleanText(decodeEntities(cm.name));
+    return st.section.find((s) => s.component && !claimed.has(String(s.id))
+      && String(s.parentsectionid ?? '') === String(cm.sectionid)
+      && cleanText(decodeEntities(s.title)) === name) ?? null;
+  };
 
   const build = (s) => ({
     id: String(s.id),
@@ -204,8 +238,11 @@ async function stateStructure(client, courseId) {
     entries: (s.cmlist || []).map(String).map((cmid) => {
       const cm = cms.get(cmid);
       if (!cm) return null;
-      const sub = delegated.get(cmid);
-      if (sub) return { type: 'subsection', cmid, available: cm.uservisible !== false, ...build(sub) };
+      const sub = delegatedFor(cm);
+      if (sub) {
+        claimed.add(String(sub.id));
+        return { type: 'subsection', cmid, available: cm.uservisible !== false, ...build(sub) };
+      }
       return { type: 'cm', cm: normalizeCm(cm), files: [], links: [] };
     }).filter(Boolean),
   });
@@ -214,39 +251,44 @@ async function stateStructure(client, courseId) {
   return order.map((id) => byId.get(id)).filter((s) => s && !s.component).map(build);
 }
 
+function parseSection(el, baseUrl) {
+  const number = Number(el.getAttribute('data-number') ?? el.id.replace('section-', '')) || 0;
+  const title = cleanText(el.getAttribute('data-sectionname'))
+    || cleanText(el.getAttribute('aria-label'))
+    || textOf(el.querySelector('.sectionname, h3'))
+    || (number === 0 ? 'General' : `Section ${number}`);
+  const entries = [];
+  for (const li of el.querySelectorAll(CM_SEL)) {
+    if (li.parentElement?.closest(SEC_SEL) !== el) continue; // belongs to a nested subsection
+    const id = cmIdOf(li);
+    const module = (/(?:^|\s)modtype_(\w+)/.exec(li.className) || [])[1] || 'unknown';
+    const inner = module === 'subsection' ? li.querySelector(SEC_SEL) : null;
+    if (inner) {
+      entries.push({ type: 'subsection', cmid: id, available: true, ...parseSection(inner, baseUrl) });
+      continue;
+    }
+    const link = li.querySelector('a[href*="/mod/"][href*="view.php?id="]');
+    const name = cleanText(li.getAttribute('data-activityname'))
+      || textOf(li.querySelector('.instancename, .activityname'))
+      || textOf(link) || `${module} ${id}`;
+    entries.push({
+      type: 'cm',
+      cm: {
+        id, module, modname: module, name,
+        url: link ? new URL(link.getAttribute('href'), baseUrl).toString() : null,
+        available: module === 'label' || !!link,
+      },
+      files: [], links: [],
+    });
+  }
+  return { id: el.getAttribute('data-id') || `num:${number}`, number, title, url: null, files: [], links: [], entries };
+}
+
 /** Older Moodle (3.x) or a format the state call can't describe: read the course page. */
 export function htmlSections(doc, baseUrl) {
-  const sections = [];
-  const els = [...doc.querySelectorAll('li.section[id^="section-"], [data-for="section"]')]
-    .filter((el) => !el.parentElement?.closest('li.section[id^="section-"], [data-for="section"]'));
-  for (const el of els) {
-    const number = Number(el.getAttribute('data-number') ?? el.id.replace('section-', '')) || 0;
-    const title = cleanText(el.getAttribute('data-sectionname'))
-      || cleanText(el.getAttribute('aria-label'))
-      || textOf(el.querySelector('.sectionname, h3'))
-      || (number === 0 ? 'General' : `Section ${number}`);
-    const entries = [];
-    for (const li of el.querySelectorAll('li.activity[id^="module-"], [data-for="cmitem"]')) {
-      if (li.parentElement?.closest('li.activity[id^="module-"], [data-for="cmitem"]')) continue;
-      const id = li.getAttribute('data-id') || li.id.replace('module-', '');
-      const module = (/(?:^|\s)modtype_(\w+)/.exec(li.className) || [])[1] || 'unknown';
-      const link = li.querySelector('a[href*="/mod/"][href*="view.php?id="]');
-      const name = cleanText(li.getAttribute('data-activityname'))
-        || textOf(li.querySelector('.instancename, .activityname'))
-        || textOf(link) || `${module} ${id}`;
-      entries.push({
-        type: 'cm',
-        cm: {
-          id, module, modname: module, name,
-          url: link ? new URL(link.getAttribute('href'), baseUrl).toString() : null,
-          available: module === 'label' || !!link,
-        },
-        files: [], links: [],
-      });
-    }
-    sections.push({ id: el.getAttribute('data-id') || `num:${number}`, number, title, url: null, files: [], links: [], entries });
-  }
-  return sections;
+  return [...doc.querySelectorAll(SEC_SEL)]
+    .filter((el) => !el.parentElement?.closest(SEC_SEL))
+    .map((el) => parseSection(el, baseUrl));
 }
 
 async function htmlStructure(client, page, courseId) {
@@ -297,9 +339,6 @@ function scanCoursePages(pages, sections, origin) {
     else { secById.set(String(e.id), e); if (e.number != null) secById.set(`num:${e.number}`, e); }
   });
 
-  const CM_SEL = '[data-for="cmitem"], li.activity[id^="module-"]';
-  const SEC_SEL = '[data-for="section"], li.section[id^="section-"]';
-  const cmIdOf = (el) => el.getAttribute('data-id') || el.id.replace('module-', '');
   const secOf = (el) => secById.get(el.getAttribute('data-id'))
     || secById.get(`num:${el.getAttribute('data-number') ?? el.id.replace('section-', '')}`);
 
@@ -510,10 +549,10 @@ export async function crawlCourse(client, courseId, opts, onProgress = () => {})
   let sections;
   const pages = [page];
   try {
-    sections = await stateStructure(client, courseId);
+    sections = await stateStructure(client, courseId, page.doc);
     // Layouts that show one section per page don't render every section on the
     // main page; fetch the missing ones so their summaries and labels count too.
-    const rendered = new Set([...page.doc.querySelectorAll('[data-for="section"][data-id]')]
+    const rendered = new Set([...page.doc.querySelectorAll('li[data-for="section"][data-id]')]
       .map((el) => el.getAttribute('data-id')));
     const missing = [];
     walk(sections, (s) => { if (s.type !== 'cm' && s.url && !rendered.has(s.id)) missing.push(s.url); });
