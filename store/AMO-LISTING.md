@@ -18,47 +18,46 @@ Download a whole Moodle course in one click: lecture files, folders, assignment 
 
 ## Description
 
-> AMO allows a small set of HTML tags: `<b> <i> <strong> <em> <ul> <ol> <li> <blockquote> <code> <a>`. Paste as is.
+> The AMO form supports some Markdown. Paste as is.
 
-```html
-<b>Your whole Moodle course, saved in one click, sorted the way the course is.</b>
+```markdown
+**Your whole Moodle course, saved in one click, sorted the way the course is.**
 
-Open a course, click CourseCrate, press Download. You get a folder per section with every file numbered in course order:
+Open a course, click CourseCrate, press Download. You get a folder per section, with every file numbered in course order:
 
-<code>CourseCrate / Psychology in Cinema / 01 - Background information / 02 - Lecture slides.pdf</code>
+`CourseCrate / Psychology in Cinema / 01 - Background information / 02 - Lecture slides.pdf`
 
-<b>What it saves</b>
-<ul>
-<li>File and Folder activities (PDFs, slides, documents, audio, video), with their sub-folders</li>
-<li>Files and media placed in section text and text &amp; media areas</li>
-<li>Files linked inside Pages and Books</li>
-<li>Assignment briefs, your own submitted files and teacher feedback</li>
-<li>Forum attachments, in a folder per discussion</li>
-<li>A Links.html page in each section with every web link, URL activity and embedded YouTube/Vimeo video</li>
-</ul>
+**What it saves**
 
-<b>Built for the whole semester</b>
-<ul>
-<li><b>Sync:</b> run it again any time and only new or changed files download. Files you already have are marked "Have it".</li>
-<li><b>Folders or ZIP:</b> stream files straight into your Downloads folder (any size), or pack the course into a single ZIP.</li>
-<li><b>Pick and choose:</b> tick or untick whole sections, activities or single files before downloading.</li>
-<li><b>Readable names:</b> files can be named after the activity ("Lecture 3 slides.pdf") or keep their original names.</li>
-<li><b>Course picker:</b> click the button anywhere on your Moodle site to choose from your courses.</li>
-</ul>
+- File and Folder activities (PDFs, slides, documents, audio, video), with their sub-folders
+- Files and media placed in section text and text & media areas
+- Files linked inside Pages and Books
+- Assignment briefs, your own submitted files and teacher feedback
+- Forum attachments, in a folder per discussion
+- A Links.html page in each section with every web link, URL activity and embedded YouTube/Vimeo video
 
-<b>Private by design</b>
+**Built for the whole semester**
+
+- **Sync:** run it again any time and only new or changed files download. Files you already have are marked "Have it".
+- **Folders or ZIP:** stream files straight into your Downloads folder (any size), or pack the course into a single ZIP.
+- **Pick and choose:** tick or untick whole sections, activities or single files before downloading.
+- **Readable names:** name files after the activity ("Lecture 3 slides.pdf") or keep their original names.
+- **Course picker:** click the button anywhere on your Moodle site to choose from your courses.
+
+**Private by design**
+
 CourseCrate uses the Moodle login you already have in Firefox, so there's no password, token or site setup. It only talks to the Moodle sites you allow (Firefox asks once per site), collects no data and has no servers. Everything stays on your computer.
 
-<b>Works with</b>
+**Works with**
+
 Moodle 4.x and 5.x, including "one section per page" courses and subsections, with a fallback for Moodle 3.x. Any university or school Moodle you can log in to.
 
-<b>Good to know</b>
-<ul>
-<li>Online-only activities such as quizzes, lessons, H5P and wikis have nothing to download and are skipped.</li>
-<li>Moodle logs CourseCrate's page visits like your own clicks, so "view" completion may be marked.</li>
-<li>In current Firefox, new extension buttons sit in the puzzle-piece menu. Pin CourseCrate for one-click access.</li>
-<li>Please respect your institution's rules on course material.</li>
-</ul>
+**Good to know**
+
+- Online-only activities such as quizzes, lessons, H5P and wikis have nothing to download and are skipped.
+- Moodle logs CourseCrate's page visits like your own clicks, so "view" completion may be marked.
+- In current Firefox, new extension buttons sit in the puzzle-piece menu. Pin CourseCrate for one-click access.
+- Please respect your institution's rules on course material.
 
 Open source (MIT): https://github.com/saadibnainan/CourseCrate
 
@@ -67,8 +66,7 @@ Moodle™ is a registered trademark of Moodle Pty Ltd. CourseCrate is an indepen
 
 ## Categories (Firefox)
 
-1. **Download Management** (primary)
-2. **Other**
+- **Download Management** (only this one)
 
 ## Tags
 
