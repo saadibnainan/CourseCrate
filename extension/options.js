@@ -1,3 +1,4 @@
+import './lib/compat.js';
 import { loadSettings, saveSettings } from './lib/settings.js';
 import { sanitizeSegment } from './lib/util.js';
 

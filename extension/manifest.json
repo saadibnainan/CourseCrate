@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CourseCrate",
   "short_name": "CourseCrate",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Download a whole Moodle course in one click: files, folders, assignment and forum attachments and links, sorted by section.",
   "author": "Mohammad Saad Ibna Inan",
   "homepage_url": "https://github.com/saadibnainan/CourseCrate",

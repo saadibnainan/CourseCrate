@@ -152,3 +152,4 @@ vite.config.ts.timestamp-*
 .web-extension-id
 web-ext-artifacts/
 .amo-upload-uuid
+build/

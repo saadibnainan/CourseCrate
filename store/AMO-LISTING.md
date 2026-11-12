@@ -1,6 +1,6 @@
 # addons.mozilla.org listing: CourseCrate
 
-Copy these fields into the AMO Developer Hub when submitting (`npm run build`, then upload `dist/coursecrate-1.0.0.zip`, or `npm run sign` with API keys).
+Copy these fields into the AMO Developer Hub when submitting (`npm run build`, then upload `dist/coursecrate-firefox-<version>.zip`, or `npm run sign` with API keys).
 
 ---
 

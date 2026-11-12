@@ -1,5 +1,5 @@
 // Two ways to save a course:
-//  - folders: hand each file to Firefox's download manager, straight into
+//  - folders: hand each file to the browser's download manager, straight into
 //    Downloads/<root>/<course>/<section>/... (streams to disk, any size)
 //  - zip: fetch every file, pack one <course>.zip in memory, save that.
 
@@ -8,19 +8,26 @@ import { pool, isAbort } from './util.js';
 
 const HTML_EXT = /^(html?|xhtml)$/i;
 
+// Chrome parks some file types (and Safe Browsing hits) until the user clicks
+// Keep in its download list. Those never finish on their own, so stop waiting.
+const HELD = new Set(['file', 'url', 'content', 'uncommon', 'host', 'unwanted', 'accountCompromise']);
+const HELD_MESSAGE = 'The browser held this file back as risky. Keep it from the download list if you trust it.';
+
 function blobUrlFor(text, type) {
   return URL.createObjectURL(new Blob([text], { type }));
 }
 
-/** Waits for Firefox download ids to finish. One listener for the whole run. */
+/** Waits for browser download ids to finish. One listener for the whole run. */
 class DownloadWatcher {
   #waiting = new Map();
   #early = new Map();
   #listener = (delta) => {
     const state = delta.state?.current;
-    if (state !== 'complete' && state !== 'interrupted') return;
+    let result;
+    if (state === 'complete' || state === 'interrupted') result = { state, error: delta.error?.current };
+    else if (HELD.has(delta.danger?.current)) result = { state: 'held' };
+    else return;
     const w = this.#waiting.get(delta.id);
-    const result = { state, error: delta.error?.current };
     if (w) { this.#waiting.delete(delta.id); w(result); } else this.#early.set(delta.id, result);
   };
 
@@ -32,9 +39,15 @@ class DownloadWatcher {
     const p = new Promise((resolve) => this.#waiting.set(id, resolve));
     // It may have finished between download() resolving and us listening.
     const [item] = await browser.downloads.search({ id });
-    if (item && (item.state === 'complete' || item.state === 'interrupted') && this.#waiting.has(id)) {
-      this.#waiting.delete(id);
-      return { state: item.state, error: item.error };
+    if (item && this.#waiting.has(id)) {
+      if (item.state === 'complete' || item.state === 'interrupted') {
+        this.#waiting.delete(id);
+        return { state: item.state, error: item.error };
+      }
+      if (HELD.has(item.danger)) {
+        this.#waiting.delete(id);
+        return { state: 'held' };
+      }
     }
     return p;
   }
@@ -107,6 +120,11 @@ export async function saveToFolders(jobs, opts) {
           onStatus(job.id, warning ? 'warn' : 'done', { warning, bytes: item?.fileSize });
           return;
         }
+        if (result.state === 'held') { // left in the download list for the user to decide
+          failed.push({ job, error: HELD_MESSAGE });
+          onStatus(job.id, 'error', { error: HELD_MESSAGE });
+          return;
+        }
         if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
         const error = result.error || 'interrupted';
         if (/^NETWORK_|^SERVER_FAILED/.test(error) && attempt++ < 2) {
@@ -137,10 +155,13 @@ function describeDownloadError(code) {
     SERVER_UNAUTHORIZED: 'Moodle asked for a login. Your session may have ended.',
     NETWORK_FAILED: 'The network dropped while downloading.',
     NETWORK_TIMEOUT: 'The download timed out.',
-    FILE_ACCESS_DENIED: 'Firefox could not write to your Downloads folder.',
+    FILE_ACCESS_DENIED: 'The browser could not write to your Downloads folder.',
     FILE_NO_SPACE: 'Your disk is full.',
     FILE_NAME_TOO_LONG: 'The file path is too long for your system.',
-    FILE_FAILED: 'Firefox could not save the file.',
+    FILE_FAILED: 'The browser could not save the file.',
+    FILE_BLOCKED: 'The browser blocked this file.',
+    FILE_VIRUS_INFECTED: 'Your virus scanner blocked this file.',
+    FILE_SECURITY_CHECK_FAILED: 'The browser blocked this file after a security check.',
   })[code] ?? `Download failed (${code}).`;
 }
 
@@ -217,6 +238,7 @@ export async function saveAsZip(jobs, opts) {
       url, filename: zipName.join('/'), conflictAction: 'uniquify', saveAs: false,
     });
     const result = await watcher.wait(id);
+    if (result.state === 'held') throw new Error(HELD_MESSAGE);
     if (result.state !== 'complete') throw new Error(describeDownloadError(result.error || 'FILE_FAILED'));
     return { done, failed, firstDownloadId: id, zipBytes: blob.size };
   } finally {

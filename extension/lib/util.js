@@ -28,14 +28,15 @@ export function splitExt(name) {
 
 /**
  * Make one path segment safe on Windows, macOS and Linux, and acceptable to
- * Firefox's downloads API (which rejects names it would have to rewrite).
+ * the downloads API of Firefox and Chrome (both reject names they would have
+ * to rewrite; Chrome also refuses '~' and invisible format characters).
  */
 export function sanitizeSegment(raw, fallback = 'untitled') {
   let s = cleanText(raw)
-    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/[\p{Cc}\p{Cf}\p{Noncharacter_Code_Point}]/gu, '')
     .replace(/"/g, "'")
     .replace(/\s*:\s*/g, ' - ')
-    .replace(/[\\/]/g, '-')
+    .replace(/[\\/~]/g, '-')
     .replace(/[*?<>|]/g, '_')
     .replace(/\s+/g, ' ')
     .trim()

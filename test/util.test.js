@@ -12,6 +12,10 @@ test('sanitizeSegment makes names safe on every OS', () => {
   assert.equal(sanitizeSegment('aux.txt'), '_aux.txt');
   assert.equal(sanitizeSegment(''), 'untitled');
   assert.equal(sanitizeSegment('a‎  b'), 'a b');
+  // Chrome's downloads API rejects these outright.
+  assert.equal(sanitizeSegment('Week 1 ~ Intro'), 'Week 1 - Intro');
+  assert.equal(sanitizeSegment('co\u00adop\u200d\u0085\u2060 notes'), 'coop notes');
+  assert.equal(sanitizeSegment('\ufdd0Slides\ufffe.pdf'), 'Slides.pdf');
   const long = sanitizeSegment(`${'x'.repeat(300)}.pdf`);
   assert.equal(long.length, 120);
   assert.ok(long.endsWith('.pdf'));

@@ -1,5 +1,9 @@
 // Toolbar button: look at the current tab, then open (or focus) the
 // CourseCrate page for that Moodle course.
+//
+// Firefox runs this as an event page, Chrome as a service worker.
+
+globalThis.browser ??= globalThis.chrome; // same shim as lib/compat.js
 
 // Runs inside the page. Must be self-contained.
 function detectMoodle() {
@@ -25,7 +29,7 @@ function detectMoodle() {
   return out;
 }
 
-browser.action.onClicked.addListener(async (tab) => {
+async function openCrate(tab) {
   let info = null;
   try {
     const [res] = await browser.scripting.executeScript({ target: { tabId: tab.id }, func: detectMoodle });
@@ -56,7 +60,9 @@ browser.action.onClicked.addListener(async (tab) => {
   }
   const created = await browser.tabs.create({ url: page, index: tab.index + 1, openerTabId: tab.id });
   if (params.has('course')) await browser.storage.session.set({ [key]: created.id });
-});
+}
+
+browser.action.onClicked.addListener(openCrate);
 
 browser.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') browser.tabs.create({ url: browser.runtime.getURL('crate.html?welcome=1') });

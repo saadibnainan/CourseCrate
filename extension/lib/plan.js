@@ -112,7 +112,7 @@ export function buildPlan(course, s, synced = {}) {
       }
       if (cm.module === 'url') {
         for (const l of e.links) links.push(l);
-        // Firefox refuses to save .url files directly, so shortcuts only go into ZIPs.
+        // Browsers refuse to save .url files directly, so shortcuts only go into ZIPs.
         if (s.urlShortcuts && s.mode === 'zip' && e.links[0]) {
           const segs = [...dirSegs, `${prefix()}${cm.name}.url`];
           const shortcut = `[InternetShortcut]\r\nURL=${e.links[0].url}\r\n`;

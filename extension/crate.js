@@ -1,3 +1,4 @@
+import './lib/compat.js';
 import { MoodleClient, crawlCourse, listCourses } from './lib/moodle.js';
 import { buildPlan, fileIdsUnder } from './lib/plan.js';
 import { saveToFolders, saveAsZip } from './lib/download.js';
@@ -126,7 +127,7 @@ function handleError(err, retry) {
   if (isAbort(err)) return;
   console.error(err);
   if (err.code === 'login') {
-    showError('Log in to Moodle first', 'CourseCrate uses your normal Moodle login. Log in on this site in Firefox, then try again.', { login: true, retry });
+    showError('Log in to Moodle first', 'CourseCrate uses your normal Moodle login. Log in on this site in this browser, then try again.', { login: true, retry });
   } else if (err.code === 'notenrolled') {
     showError('No access to this course', err.message, { retry });
   } else {
@@ -478,7 +479,10 @@ async function run() {
   $('#go-note').hidden = true;
   const firstId = result?.firstDownloadId;
   $('#show-folder').hidden = firstId == null;
-  $('#show-folder').onclick = () => browser.downloads.show(firstId).catch(() => browser.downloads.showDefaultFolder());
+  // Chrome's downloads.show() returns nothing and throws instead of rejecting.
+  $('#show-folder').onclick = () => Promise.resolve()
+    .then(() => browser.downloads.show(firstId))
+    .catch(() => browser.downloads.showDefaultFolder());
 
   const fl = $('#failures');
   fl.hidden = !failed.length;

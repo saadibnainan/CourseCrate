@@ -1,14 +1,16 @@
 {
   "name": "coursecrate",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
-  "description": "Firefox extension: download a whole Moodle course, sorted into one folder per section.",
+  "description": "Browser extension for Firefox and Chrome: download a whole Moodle course, sorted into one folder per section.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "node --test test/",
     "lint": "web-ext lint --source-dir extension",
-    "build": "web-ext build --source-dir extension --artifacts-dir dist --overwrite-dest",
+    "build": "npm run build:firefox && npm run build:chrome",
+    "build:firefox": "web-ext build --source-dir extension --artifacts-dir dist --filename coursecrate-firefox-{version}.zip --overwrite-dest",
+    "build:chrome": "node scripts/build-chrome.mjs",
     "start": "web-ext run --source-dir extension",
     "sign": "web-ext sign --source-dir extension --artifacts-dir dist --channel listed"
   },
