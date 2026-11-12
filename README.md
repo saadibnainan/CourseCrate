@@ -1,10 +1,57 @@
 # CourseCrate
 
-Extension that allows Single click to download all the contents from Moodle!
+**Download a whole Moodle course in one click.**
 
-CourseCrate is a browser extension for Firefox and Chrome (and other Chromium browsers such as Edge and Brave) that saves an entire Moodle course to your computer, sorted the way the course is: one folder per section, files numbered in course order. Run it again later in the semester and it only fetches what's new.
+CourseCrate is a browser extension for Chrome, Edge, Brave and Firefox. It saves every file of a Moodle course to your computer, sorted the way the course is: one folder per section, files numbered in course order. Run it again later in the semester and it only fetches what's new.
 
 ![The course page in CourseCrate](store/screenshots/1-course.png)
+
+- [Install](#install)
+- [How to use it](#how-to-use-it)
+- [What it saves](#what-it-saves)
+- [Options](#options)
+- [Privacy](#privacy)
+- [Development](#development)
+
+## Install
+
+CourseCrate isn't in the browser stores yet, so for now you install it from a download. It takes about a minute.
+
+### Chrome, Edge, Brave and other Chromium browsers
+
+1. Go to the [latest release](https://github.com/saadibnainan/CourseCrate/releases/latest) and download **`coursecrate-chrome-<version>.zip`**.
+2. Unzip it into a folder you'll keep, for example `Documents/CourseCrate`. The browser loads CourseCrate from that folder, so don't delete or move it afterwards.
+3. Open the extensions page:
+   - Chrome and Brave: `chrome://extensions`
+   - Edge: `edge://extensions`
+4. Turn on **Developer mode** (top right in Chrome, left sidebar in Edge).
+5. Click **Load unpacked** and choose the folder from step 2 (the one that contains `manifest.json`).
+6. Click the puzzle-piece icon in the toolbar and pin **CourseCrate**, so its button is always one click away.
+
+Chrome may remind you now and then that a Developer mode extension is installed. That's normal for extensions installed this way; keep it on.
+
+**Updating:** download the new zip, unzip it over the same folder, then press the reload arrow on CourseCrate's card in the extensions page. Your settings and sync history stay.
+
+### Firefox
+
+CourseCrate is coming to addons.mozilla.org; this section will link to it once it's listed. Until then you can try it for one session:
+
+1. Download the source: **Code → Download ZIP** on this page, and unzip it.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and choose `extension/manifest.json` from the unzipped folder.
+
+Firefox removes temporary add-ons when it closes, so you have to repeat this after each restart.
+
+## How to use it
+
+1. Log in to Moodle in your browser and open any page of the course.
+2. Click the **CourseCrate** button in the toolbar. A CourseCrate tab opens.
+3. The first time on a Moodle site, click **Allow on this site** and confirm. CourseCrate asks once per site.
+4. Untick anything you don't want, choose **Folders** or **ZIP file**, and press **Download**.
+
+Files land in `Downloads/CourseCrate/<course name>/`. Next time, run it again on the same course and only new files come down.
+
+Clicking the button on any other Moodle page (the dashboard, for example) lists your courses on that site.
 
 ## What it saves
 
@@ -39,22 +86,17 @@ Downloads/CourseCrate/Psychology in Cinema/
     └── 01 - Group Project/My submission/GroupFCPresentation.pptx
 ```
 
-## How to use it
-
-1. Log in to Moodle in your browser and open any page of the course.
-2. Click the CourseCrate button in the toolbar. In current Firefox and Chrome it starts in the puzzle-piece (Extensions) menu; pin it for one-click access.
-3. The first time you use a Moodle site, allow CourseCrate on it (one click, per site).
-4. Untick anything you don't want, choose **Folders** or **ZIP file**, and press **Download**.
-
-Clicking the button outside a course, but on a Moodle page, lists your courses on that site.
-
-### Options
+## Options
 
 - **Save as**: *Folders* streams each file into `Downloads/CourseCrate/<course>/`, which suits any course size. *ZIP file* packs one `<course>.zip` in memory, up to 4 GB.
 - **Include**: Links index, assignment files, forum attachments. Big forums take longer to scan.
 - **Sync**: skips files CourseCrate already saved from that course. Moodle gives every new version of a file a new address, so changed files count as new.
 - **Names**: number folders and files in course order, and name files after the activity title or keep the original file name.
 - **Settings page**: root folder name, files at once, keep the browser's download list tidy, `.url` shortcuts (ZIP only, because browsers refuse to save `.url` files directly).
+
+## Privacy
+
+CourseCrate uses the Moodle login you already have in your browser: no password, token or account. It only talks to the Moodle sites you allow, has no analytics and no servers, and nothing leaves your computer. Details in [PRIVACY.md](PRIVACY.md).
 
 ## How it works
 
